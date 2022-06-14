@@ -141,6 +141,7 @@ impl Exchange for Exchanger {
             payload.input_fact = input_fact.into_iter().map(|i| i as i32).collect();
         }
         payload.model_id = model_id.to_string();
+        info!("Model id is {}",payload.model_id);
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -226,6 +227,7 @@ impl Exchange for Exchanger {
 
         // Find the model with model_id
 
+        info!("Inside client_comm uuid match");
         let uuid = match Uuid::from_str(&model_id) {
             Ok(uuid) => uuid,
             Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
@@ -238,6 +240,7 @@ impl Exchange for Exchanger {
                 model.datum_output(),
             )
         });
+        info!("Inside client_comm res match");
         let res = match res {
             Some(res) => res,
             None => return Err(Status::invalid_argument("Model doesn't exist")),

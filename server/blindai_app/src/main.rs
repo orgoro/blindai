@@ -18,8 +18,12 @@
 extern crate blindai_sgx_attestation;
 extern crate sgx_types;
 extern crate sgx_urts;
+//extern crate blindai_sgx;
+
+use blindai_sgx::start_server;
 
 use std::{
+    thread,
     collections::hash_map::DefaultHasher,
     ffi::CString,
     hash::{Hash, Hasher},
@@ -31,7 +35,7 @@ use env_logger::Env;
 use log::{error, info};
 
 use sgx_types::*;
-use sgx_urts::SgxEnclave;
+//use sgx_urts::SgxEnclave;
 
 use std::{fs::File, io::Read};
 
@@ -40,20 +44,22 @@ use tonic::transport::Server;
 use anyhow::Result;
 
 mod dcap;
-mod self_signed_tls;
+//mod self_signed_tls;
 
-static ENCLAVE_FILE: &str = "enclave.signed.so";
+//static ENCLAVE_FILE: &str = "enclave.signed.so";
 
 const SIM_MODE: bool = cfg!(SGX_MODE = "SW");
 
+/*
 extern "C" {
     fn start_server(
-        eid: sgx_enclave_id_t,
-        retval: *mut sgx_status_t,
+        //eid: sgx_enclave_id_t,
+        //retval: *mut sgx_status_t,
         telemetry_platform: *const c_char,
         telemetry_uid: *const c_char,
     ) -> sgx_status_t;
 }
+*/
 
 #[derive(Default)]
 pub struct State {}
@@ -63,6 +69,7 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
     // The request type gets wrapped in a `tonic::Request`.
     // The response type gets wrapped in a `Result<tonic::Response<_>,
     // tonic::Status>`.
+    
     async fn get_collateral_from_quote(
         &self,
         request: tonic::Request<Vec<u8>>,
@@ -72,6 +79,7 @@ impl untrusted_local_app_server::UntrustedLocalApp for State {
             .map(tonic::Response::new)
             .map_err(|e| tonic::Status::internal(e.to_string()))
     }
+    
 }
 
 fn fill_blank_and_print(content: &str, size: usize) {
@@ -81,7 +89,7 @@ fn fill_blank_and_print(content: &str, size: usize) {
         trail_char.repeat(((size - 2 - content.len()) as f32 / 2.0).ceil() as usize);
     println!("{} {} {}", trail, content, trail2);
 }
-
+/*
 fn init_enclave() -> SgxResult<SgxEnclave> {
     let mut launch_token: sgx_launch_token_t = [0; 1024];
     let mut launch_token_updated: i32 = 0;
@@ -107,6 +115,7 @@ fn init_enclave() -> SgxResult<SgxEnclave> {
         &mut misc_attr,
     )
 }
+*/
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -125,7 +134,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     fill_blank_and_print(&version_str, text_size);
     println!();
     info!("Starting Enclave...");
-
+    /*
     let enclave = match init_enclave() {
         Ok(r) => {
             info!("[+] Init Enclave Successful {}!", r.geteid());
@@ -136,6 +145,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Ok(());
         }
     };
+    */
 
     // Read network config
     let mut file = File::open("config.toml")?;
@@ -166,15 +176,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         CString::new(format!("{:X}", hasher.finish())).unwrap()
     };
 
-    let mut retval = sgx_status_t::SGX_SUCCESS;
-    let result = unsafe {
-        start_server(
-            enclave.geteid(),
-            &mut retval,
-            platform.into_raw(),
-            uid.into_raw(),
-        )
-    };
+    //let mut retval = sgx_status_t::SGX_SUCCESS;
+    info!("Just before calling start_server");
+    let result = thread::spawn(|| {
+        unsafe {
+            start_server(
+                //enclave.geteid(),
+                //&mut retval,
+                platform.into_raw(),
+                uid.into_raw(),
+            )
+        };
+    }).join().expect("Thread panicked");
+    
+    info!("Outside start_server");
+    /*
     match result {
         sgx_status_t::SGX_SUCCESS => {}
         _ => {
@@ -182,7 +198,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             return Ok(());
         }
     }
+    */
     info!("[+] start_server success...");
-    enclave.destroy();
+    //enclave.destroy();
     Ok(())
 }
