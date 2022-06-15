@@ -1,8 +1,10 @@
-Navigate to server/blindai_app and run ````cargo build````
-Then copy the blindai_app binary from target/debug to bin
-Use ````valgrind ./blindai_app```` to run the blindai_app binary with memcheck
+Navigate to server/blindai_app and run ````cargo build````.
 
-##############################################################################################################################################
+Then copy the blindai_app binary from target/debug to bin.
+
+Use ````valgrind ./blindai_app```` to run the blindai_app binary with memcheck.
+
+##############################################################################################################################
 
 <p align="center">
   <img src="assets/logo.png" alt="BlindAI" width="200" height="200" />
