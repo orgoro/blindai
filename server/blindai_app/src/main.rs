@@ -19,7 +19,10 @@ extern crate blindai_sgx_attestation;
 extern crate sgx_types;
 extern crate sgx_urts;
 
+use blindai_sgx::start_server;
+
 use std::{
+    thread,
     collections::hash_map::DefaultHasher,
     ffi::CString,
     hash::{Hash, Hasher},
@@ -31,7 +34,7 @@ use env_logger::Env;
 use log::{error, info};
 
 use sgx_types::*;
-use sgx_urts::SgxEnclave;
+// use sgx_urts::SgxEnclave;
 
 use std::{fs::File, io::Read};
 
@@ -40,20 +43,20 @@ use tonic::transport::Server;
 use anyhow::Result;
 
 mod dcap;
-mod self_signed_tls;
+// mod self_signed_tls;
 
-static ENCLAVE_FILE: &str = "enclave.signed.so";
+// static ENCLAVE_FILE: &str = "enclave.signed.so";
 
 const SIM_MODE: bool = cfg!(SGX_MODE = "SW");
 
-extern "C" {
-    fn start_server(
-        eid: sgx_enclave_id_t,
-        retval: *mut sgx_status_t,
-        telemetry_platform: *const c_char,
-        telemetry_uid: *const c_char,
-    ) -> sgx_status_t;
-}
+// extern "C" {
+//     fn start_server(
+//         eid: sgx_enclave_id_t,
+//         retval: *mut sgx_status_t,
+//         telemetry_platform: *const c_char,
+//         telemetry_uid: *const c_char,
+//     ) -> sgx_status_t;
+// }
 
 #[derive(Default)]
 pub struct State {}
@@ -82,31 +85,31 @@ fn fill_blank_and_print(content: &str, size: usize) {
     println!("{} {} {}", trail, content, trail2);
 }
 
-fn init_enclave() -> SgxResult<SgxEnclave> {
-    let mut launch_token: sgx_launch_token_t = [0; 1024];
-    let mut launch_token_updated: i32 = 0;
-    // call sgx_create_enclave to initialize an enclave instance
-    // Debug Support: set 2nd parameter to 1
-    let debug = match std::env::var("ENCLAVE_DEBUG_MODE").ok().as_deref() {
-        Some("true") => true,
-        Some("false") => false,
-        _ => SIM_MODE,
-    };
+// fn init_enclave() -> SgxResult<SgxEnclave> {
+//     let mut launch_token: sgx_launch_token_t = [0; 1024];
+//     let mut launch_token_updated: i32 = 0;
+//     // call sgx_create_enclave to initialize an enclave instance
+//     // Debug Support: set 2nd parameter to 1
+//     let debug = match std::env::var("ENCLAVE_DEBUG_MODE").ok().as_deref() {
+//         Some("true") => true,
+//         Some("false") => false,
+//         _ => SIM_MODE,
+//     };
 
-    info!("Launching enclave with debug_mode = {}", debug);
+//     info!("Launching enclave with debug_mode = {}", debug);
 
-    let mut misc_attr = sgx_misc_attribute_t {
-        secs_attr: sgx_attributes_t { flags: 0, xfrm: 0 },
-        misc_select: 0,
-    };
-    SgxEnclave::create(
-        ENCLAVE_FILE,
-        if debug { 1 } else { 0 },
-        &mut launch_token,
-        &mut launch_token_updated,
-        &mut misc_attr,
-    )
-}
+//     let mut misc_attr = sgx_misc_attribute_t {
+//         secs_attr: sgx_attributes_t { flags: 0, xfrm: 0 },
+//         misc_select: 0,
+//     };
+//     SgxEnclave::create(
+//         ENCLAVE_FILE,
+//         if debug { 1 } else { 0 },
+//         &mut launch_token,
+//         &mut launch_token_updated,
+//         &mut misc_attr,
+//     )
+// }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -126,16 +129,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!();
     info!("Starting Enclave...");
 
-    let enclave = match init_enclave() {
-        Ok(r) => {
-            info!("[+] Init Enclave Successful {}!", r.geteid());
-            r
-        }
-        Err(x) => {
-            error!("[-] Init Enclave Failed {}!", x.as_str());
-            return Ok(());
-        }
-    };
+    // let enclave = match init_enclave() {
+    //     Ok(r) => {
+    //         info!("[+] Init Enclave Successful {}!", r.geteid());
+    //         r
+    //     }
+    //     Err(x) => {
+    //         error!("[-] Init Enclave Failed {}!", x.as_str());
+    //         return Ok(());
+    //     }
+    // };
 
     // Read network config
     let mut file = File::open("config.toml")?;
@@ -166,23 +169,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         CString::new(format!("{:X}", hasher.finish())).unwrap()
     };
 
-    let mut retval = sgx_status_t::SGX_SUCCESS;
-    let result = unsafe {
-        start_server(
-            enclave.geteid(),
-            &mut retval,
-            platform.into_raw(),
-            uid.into_raw(),
-        )
-    };
-    match result {
-        sgx_status_t::SGX_SUCCESS => {}
-        _ => {
-            error!("[-] ECALL Enclave Failed {}!", result.as_str());
-            return Ok(());
-        }
-    }
+    //let mut retval = sgx_status_t::SGX_SUCCESS;
+    info!("Just before calling start_server");
+    let result = thread::spawn(|| {
+        unsafe {
+            start_server(
+                //enclave.geteid(),
+                //&mut retval,
+                platform.into_raw(),
+                uid.into_raw(),
+            )
+        };
+    }).join().expect("Thread panicked");
+    
+    info!("Outside start_server");
+    
+    // match result {
+    //     sgx_status_t::SGX_SUCCESS => {}
+    //     _ => {
+    //         error!("[-] ECALL Enclave Failed {}!", result.as_str());
+    //         return Ok(());
+    //     }
+    // }
+    
     info!("[+] start_server success...");
-    enclave.destroy();
+    // enclave.destroy();
     Ok(())
 }

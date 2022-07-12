@@ -36,7 +36,6 @@ use crate::{
     model_store::ModelStore,
     telemetry::{self, TelemetryEventProps},
 };
-
 use secured_exchange::{exchange_server::Exchange, *};
 
 pub mod secured_exchange {
@@ -170,6 +169,7 @@ impl Exchange for Exchanger {
                 .collect();
         }
         payload.model_id = model_id.to_string();
+        info!("Model id is {}",payload.model_id);
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),
@@ -255,6 +255,7 @@ impl Exchange for Exchanger {
 
         // Find the model with model_id
 
+        info!("Inside client_comm uuid match");
         let uuid = match Uuid::from_str(&model_id) {
             Ok(uuid) => uuid,
             Err(_) => return Err(Status::invalid_argument("Model doesn't exist")),
@@ -262,11 +263,12 @@ impl Exchange for Exchanger {
 
         let res = self.model_store.use_model(uuid, |model| {
             (
-                model.run_inference(&mut input.clone()[..]),
+                model.run_inference(&input),
                 model.model_name().map(|s| s.to_string()),
                 model.datum_output(),
             )
         });
+        info!("Inside client_comm res match");
         let res = match res {
             Some(res) => res,
             None => return Err(Status::invalid_argument("Model doesn't exist")),

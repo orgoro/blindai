@@ -5,9 +5,9 @@ license = "Apache-2.0"
 name = "blindai_sgx"
 version = "0.4.0"
 
-[lib]
-crate-type = ["staticlib"]
-name = "blindai_sgx"
+#[lib]
+#crate-type = ["staticlib"]
+#name = "blindai_sgx"
 
 [features]
 default = []

@@ -11,7 +11,6 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 use anyhow::{anyhow, Result};
 use der_parser::oid;
 use pkix::pem::{PEM_CERTIFICATE, PEM_PRIVATE_KEY};
@@ -19,7 +18,7 @@ use rand::{rngs::OsRng, RngCore};
 use rcgen::{Certificate, CertificateParams, CustomExtension, SanType};
 use ring_compat::signature::ed25519::SigningKey;
 use rsa::{
-    pkcs1::{ToRsaPrivateKey, ToRsaPublicKey},
+    //pkcs1::{ToRsaPrivateKey, ToRsaPublicKey},
     RsaPrivateKey, RsaPublicKey,
 };
 use serde::{Deserialize, Serialize};
