@@ -12,10 +12,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if is_sim { "SW" } else { "HW" }
     );
 
-    /*
     //println!("cargo:rustc-link-search=native=./tmp/lib");
     //println!("cargo:rustc-link-lib=static=Enclave_u");
-    */
+
     println!("cargo:rustc-link-search=native={}/lib64", sdk_dir);
 
     println!("cargo:rustc-link-lib=dylib=dcap_quoteprov");

@@ -22,11 +22,11 @@ extern crate sgx_urts;
 use blindai_sgx::start_server;
 
 use std::{
-    thread,
     collections::hash_map::DefaultHasher,
     ffi::CString,
     hash::{Hash, Hasher},
     os::raw::c_char,
+    thread,
 };
 
 use blindai_common::{untrusted_local_app_server, SgxCollateral};
@@ -180,10 +180,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 uid.into_raw(),
             )
         };
-    }).join().expect("Thread panicked");
-    
+    })
+    .join()
+    .expect("Thread panicked");
+
     info!("Outside start_server");
-    
+
     // match result {
     //     sgx_status_t::SGX_SUCCESS => {}
     //     _ => {
@@ -191,7 +193,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     //         return Ok(());
     //     }
     // }
-    
+
     info!("[+] start_server success...");
     // enclave.destroy();
     Ok(())

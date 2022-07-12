@@ -169,7 +169,7 @@ impl Exchange for Exchanger {
                 .collect();
         }
         payload.model_id = model_id.to_string();
-        info!("Model id is {}",payload.model_id);
+        info!("Model id is {}", payload.model_id);
         let payload_with_header = Payload {
             header: Some(PayloadHeader {
                 issued_at: Some(SystemTime::now().into()),

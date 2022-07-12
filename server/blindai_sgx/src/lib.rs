@@ -73,17 +73,20 @@ extern crate sgx_types;
 //     telemetry_uid: *const c_char,
 // ) -> sgx_status_t {
 //     #[cfg(target_env = "sgx")]
-//     let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
+//     let _ = backtrace::enable_backtrace("enclave.signed.so",
+// PrintFormat::Full);
 
-//     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+//     env_logger::Builder::from_env(Env::default().default_filter_or("info")).
+// init();
 
 //     info!("Switched to enclave context");
 
 //     let telemetry_platform = CStr::from_ptr(telemetry_platform);
 //     let telemetry_uid = CStr::from_ptr(telemetry_uid);
 
-//     let telemetry_platform = telemetry_platform.to_owned().into_string().unwrap();
-//     let telemetry_uid = telemetry_uid.to_owned().into_string().unwrap();
+//     let telemetry_platform =
+// telemetry_platform.to_owned().into_string().unwrap();     let telemetry_uid =
+// telemetry_uid.to_owned().into_string().unwrap();
 
 //     tokio::runtime::Builder::new_current_thread()
 //         .enable_all()
@@ -95,14 +98,15 @@ extern crate sgx_types;
 //     sgx_status_t::SGX_SUCCESS
 // }
 
-pub unsafe extern fn start_server(
+pub unsafe extern "C" fn start_server(
     telemetry_platform: *const c_char,
     telemetry_uid: *const c_char,
 ) -> sgx_status_t {
-    //#[cfg(target_env = "sgx")]
-    //let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
+    // #[cfg(target_env = "sgx")]
+    // let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     info!("Reached library start_server function");
-    //env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    // env_logger::Builder::from_env(Env::default().default_filter_or("info")).
+    // init();
 
     info!("Switched to enclave context");
 
@@ -111,7 +115,7 @@ pub unsafe extern fn start_server(
 
     let telemetry_platform = telemetry_platform.to_owned().into_string().unwrap();
     let telemetry_uid = telemetry_uid.to_owned().into_string().unwrap();
-    
+
     tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
@@ -119,23 +123,21 @@ pub unsafe extern fn start_server(
         .block_on(main(telemetry_platform, telemetry_uid))
         .unwrap();
 
-        //thread::spawn(|| {
-        //    main(telemetry_platform, telemetry_uid);
-        //}).join().expect("Thread panicked");
-        
-    
-    //main(telemetry_platform, telemetry_uid);
+    // thread::spawn(|| {
+    //     main(telemetry_platform, telemetry_uid);
+    // }).join().expect("Thread panicked");
+
+    // main(telemetry_platform, telemetry_uid);
 
     sgx_status_t::SGX_SUCCESS
-
 }
 
 async fn main(
     telemetry_platform: String,
     telemetry_uid: String,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    //#[cfg(target_env = "sgx")]
-    //let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
+    // #[cfg(target_env = "sgx")]
+    // let _ = backtrace::enable_backtrace("enclave.signed.so", PrintFormat::Full);
     info!("Inside lib main!");
     let (certificate, storage_identity, signing_key_seed) = identity::create_certificate()?;
     let my_identity = Arc::new(MyIdentity::from_cert(
